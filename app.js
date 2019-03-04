@@ -26,7 +26,17 @@ function main() {
             console.log('Connection Closed');
         });
         connection.on('message', function(message) {
-            console.log('message received');
+            if (message.messageType === 'group') {
+                const groupId = message.groupId;
+                const body = message.raw_message;
+                client.send({
+                    action: 'send_group_msg',
+                    params: {
+                        group_id: groupId,
+                        message: body,
+                    }
+                });
+            }
         });
     });
 }
