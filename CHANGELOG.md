@@ -12,10 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `yarn` for dependency management
   - Added `package.json` and `yarn.lock`
   - Added three major dependency
-    - `axios@^0.18.0`
+    - `devour-clinet@^2.0.15`
     - `websocket@^1.0.28`
-    - `websocket-as-promised@^0.9.0`
+    - `winston@^3.0.1`
 - Added basic functionality
-  - Periodic scan of a Weibo user's post
-  - Communicate with Coolq bot using Websocket through [coolq-http-api](https://github.com/richardchien/coolq-http-api) to broadcast in case of new posts
-
+  - Communicate with external API to fetch `KeywordedReponses`
+  - Communicate with Coolq bot using Websocket through [coolq-http-api](https://github.com/richardchien/coolq-http-api) to monitor for keywords and reply with responses
+- Added logging
+- Added MIT license
