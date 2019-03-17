@@ -69,6 +69,7 @@ async function main() {
                     cachedKeywordedResponses = kwData;
                     let { data: inData } = await jsonApi.findAll('ignore_number');
                     cachedIgnoreNumbers = inData;
+                    lastUpdateTimestamp = Date.now()
                 } catch(e) {
                     logger.error(e);
                 }
