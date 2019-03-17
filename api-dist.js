@@ -16,7 +16,14 @@ jsonApi.define('keyworded_response', {
     keyword: '',
     response: '',
 }, {
-    collectionPath: 'keyworded_response'
+    collectionPath: 'keyworded_responses'
+});
+
+jsonApi.define('ignore_number', {
+    number: '',
+    note: '',
+}, {
+    collectionPath: 'ignore_numbers',
 });
 
 module.exports = jsonApi;

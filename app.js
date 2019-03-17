@@ -4,24 +4,30 @@ const WebSocketClient = websocket.client;
 const logger = require('./logger');
 const jsonApi = require('./api');
 
-function makeResponse(groupId, response_text) {
+function makeResponse(groupId, responseText) {
     return JSON.stringify({
         action: 'send_group_msg',
         params: {
             group_id: groupId,
-            message: response_text,
-        }
+            message: responseText,
+        },
     });
 }
 
-function sendKeywordedResponse(message, keywordedResponses, connection) {
+function isIgnoreNumber(userId, ignoreNumbers) {
+    const userIdString = userId.toString();
+    return ignoreNumbers.map( number => number.number ).includes(userIdString);
+}
+
+function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, connection) {
     if (message.utf8Data) {
         message = JSON.parse(message.utf8Data);
         if (message.message_type === 'group') {
             const groupId = message.group_id;
+            const userId = message.user_id;
             const body = message.raw_message;
             for (let kr of keywordedResponses) {
-                if (body.includes(kr.keyword)) {
+                if (body.includes(kr.keyword) && !isIgnoreNumber(userId, ignoreNumbers)) {
                     connection.send(makeResponse(groupId, kr.response));       
                 }
             }
@@ -35,9 +41,12 @@ async function main() {
 
     // Initialize KeywordedResponse cache
     let cachedKeywordedResponses = []
+    let cachedIgnoreNumbers = []
     try {
-        let { data } = await jsonApi.findAll('keyworded_response');
-        cachedKeywordedResponses = data;
+        let { data: kwData } = await jsonApi.findAll('keyworded_response');
+        cachedKeywordedResponses = kwData;
+        let { data: inData } = await jsonApi.findAll('ignore_number');
+        cachedIgnoreNumbers = inData;
     } catch(e) {
         logger.error(e);
     }
@@ -56,14 +65,16 @@ async function main() {
         connection.on('message', async function(message) {
             if (Date.now() - lastUpdateTimestamp > 300000) {
                 try {
-                    let { data } = await jsonApi.findAll('keyworded_response');
-                    cachedKeywordedResponses = data;
+                    let { data: kwData } = await jsonApi.findAll('keyworded_response');
+                    cachedKeywordedResponses = kwData;
+                    let { data: inData } = await jsonApi.findAll('ignore_number');
+                    cachedIgnoreNumbers = inData;
                 } catch(e) {
                     logger.error(e);
                 }
                 logger.info('Cache updated.');
             }
-            sendKeywordedResponse(message, cachedKeywordedResponses, connection);
+            sendKeywordedResponse(message, cachedKeywordedResponses, cachedIgnoreNumbers, connection);
         });
     });
     client.connect('ws://localhost:6700/');
