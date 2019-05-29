@@ -34,7 +34,7 @@ function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, conne
             }
             if (body.includes('pk')) {
                 request(apiAddress, function (error, response, body) {
-                    const responseText = body.response;
+                    const responseText = JSON.parse(body).response;
                     connection.send(makeResponse(groupId, responseText));
                 });
             }
