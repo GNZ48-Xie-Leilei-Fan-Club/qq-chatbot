@@ -1,8 +1,9 @@
 const websocket = require('websocket');
 const WebSocketClient = websocket.client;
+const request = require('request');
 
 const logger = require('./logger');
-const jsonApi = require('./api');
+const { jsonApi, apiAddress } = require('./api');
 
 function makeResponse(groupId, responseText) {
     return JSON.stringify({
@@ -28,8 +29,14 @@ function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, conne
             const body = message.raw_message;
             for (let kr of keywordedResponses) {
                 if (body.includes(kr.keyword) && !isIgnoreNumber(userId, ignoreNumbers)) {
-                    connection.send(makeResponse(groupId, kr.response));       
+                    connection.send(makeResponse(groupId, kr.response));
                 }
+            }
+            if (body.includes('pk')) {
+                request(apiAddress, function (error, response, body) {
+                    const responseText = body.response;
+                    connection.send(makeResponse(groupId, responseText));
+                });
             }
         }
     }
