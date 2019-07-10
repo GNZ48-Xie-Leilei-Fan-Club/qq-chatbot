@@ -38,7 +38,7 @@ function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, conne
                     connection.send(makeResponse(groupId, responseText));
                 });
             }
-            if(body.includs('实时排名')) {
+            if(body.includes('实时排名')) {
                 request(apiAddressTotalRanking, function (error, response, body) {
                     const responseText = JSON.parse(body).response;
                     connection.send(makeResponse(groupId, responseText));
