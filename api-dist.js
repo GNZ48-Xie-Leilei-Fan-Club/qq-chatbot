@@ -1,6 +1,7 @@
 const Devour = require('devour-client');
 
-let apiAddress = '';
+let apiAddressBattleBroadcast = '';
+let apiAddressTotalRanking = '';
 
 // To configure the external API from which the chatbot fetch keyworded responses
 // Change `apiaddress` to your external api address.
@@ -27,4 +28,4 @@ jsonApi.define('ignore_number', {
     collectionPath: 'ignore_numbers',
 });
 
-module.exports = { jsonApi, apiAddress };
+module.exports = { jsonApi, apiAddressBattleBroadcast, apiAddressTotalRanking};
