@@ -3,7 +3,7 @@ const WebSocketClient = websocket.client;
 const request = require('request');
 
 const logger = require('./logger');
-const { jsonApi, apiAddress } = require('./api');
+const { jsonApi, apiAddressBattleBroadcast, apiAddressTotalRanking } = require('./api');
 
 function makeResponse(groupId, responseText) {
     return JSON.stringify({
@@ -33,7 +33,13 @@ function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, conne
                 }
             }
             if (body.includes('pk')) {
-                request(apiAddress, function (error, response, body) {
+                request(apiAddressBattleBroadcast, function (error, response, body) {
+                    const responseText = JSON.parse(body).response;
+                    connection.send(makeResponse(groupId, responseText));
+                });
+            }
+            if(body.includs('实时排名')) {
+                request(apiAddressTotalRanking, function (error, response, body) {
                     const responseText = JSON.parse(body).response;
                     connection.send(makeResponse(groupId, responseText));
                 });
