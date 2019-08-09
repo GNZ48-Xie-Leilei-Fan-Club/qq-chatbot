@@ -5,11 +5,21 @@ const request = require('request');
 const logger = require('./logger');
 const { jsonApi, apiAddressBattleBroadcast, apiAddressTotalRanking } = require('./api');
 
-function makeResponse(groupId, responseText) {
+function makeGroupResponse(groupId, responseText) {
     return JSON.stringify({
         action: 'send_group_msg',
         params: {
             group_id: groupId,
+            message: responseText,
+        },
+    });
+}
+
+function makePrivateResponse(userId, responseText) {
+    return JSON.stringify({
+        action: 'send_private_msg',
+        params: {
+            user_id: userId,
             message: responseText,
         },
     });
@@ -29,20 +39,35 @@ function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, conne
             const body = message.raw_message;
             for (let kr of keywordedResponses) {
                 if (body.includes(kr.keyword) && !isIgnoreNumber(userId, ignoreNumbers)) {
-                    connection.send(makeResponse(groupId, kr.response));
+                    connection.send(makeGroupResponse(groupId, kr.response));
                 }
             }
             if (body.includes('pk')) {
                 request(apiAddressBattleBroadcast, function (error, response, body) {
                     const responseText = JSON.parse(body).response;
-                    connection.send(makeResponse(groupId, responseText));
+                    connection.send(makeGroupResponse(groupId, responseText));
                 });
             }
             if(body.includes('实时排名')) {
                 request(apiAddressTotalRanking, function (error, response, body) {
                     const responseText = JSON.parse(body).response;
-                    connection.send(makeResponse(groupId, responseText));
+                    connection.send(makeGroupResponse(groupId, responseText));
                 });
+            }
+        }
+    }
+}
+
+function sendNoticeResponse(message, newMemberNotices, connection) {
+    if (message.utf8Data) {
+        message = JSON.parse(message.utf8Data);
+        if (message.notice_type === 'group_increase') {
+            const groupId = message.group_id;
+            const userId = message.user_id;
+            const atString = `[CQ:at,qq=${userId}]\n`
+            for (let notice in newMemberNotices) {
+                connection.send(makeGroupResponse(groupId, atString+notice.response))
+                connection.send(makePrivateResponse(userId), notice.response)
             }
         }
     }
@@ -89,6 +114,14 @@ async function main() {
                 logger.info('Cache updated.');
             }
             sendKeywordedResponse(message, cachedKeywordedResponses, cachedIgnoreNumbers, connection);
+        });
+        connection.on('notice', async function(message) {
+            try {
+                let { data: newMemberNoticeData } = await jsonApi.findAll('new_member_notice');
+            } catch(e) {
+                logger.error(e);
+            }
+            sendNoticeResponse(message, newMemberNoticeDate, connection);
         });
     });
     client.connect('ws://localhost:6700/');

@@ -28,4 +28,11 @@ jsonApi.define('ignore_number', {
     collectionPath: 'ignore_numbers',
 });
 
+jsonApi.define('new_member_notice', {
+    number: '',
+    note: '',
+}, {
+    collectionPath: 'new_member_notices',
+});
+
 module.exports = { jsonApi, apiAddressBattleBroadcast, apiAddressTotalRanking};
