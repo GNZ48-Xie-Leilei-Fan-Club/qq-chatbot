@@ -30,7 +30,7 @@ function isIgnoreNumber(userId, ignoreNumbers) {
     return ignoreNumbers.map( number => number.number ).includes(userIdString);
 }
 
-function sendResponse(message, keywordedResponses, ignoreNumbers, connection) {
+async function sendResponse(message, keywordedResponses, ignoreNumbers, connection) {
     if (message.utf8Data) {
         message = JSON.parse(message.utf8Data);
         if (message.post_type === 'message' && message.message_type === 'group') {

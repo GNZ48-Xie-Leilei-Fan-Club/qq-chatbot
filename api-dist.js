@@ -29,8 +29,7 @@ jsonApi.define('ignore_number', {
 });
 
 jsonApi.define('new_member_notice', {
-    number: '',
-    note: '',
+    response: '',
 }, {
     collectionPath: 'new_member_notices',
 });
