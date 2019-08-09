@@ -57,15 +57,15 @@ function sendResponse(message, keywordedResponses, ignoreNumbers, connection) {
         } else if (message.post_type === 'notice' && message.notice_type === 'group_increase') {
             try {
                 let { data: newMemberNotices } = await jsonApi.findAll('new_member_notice');
+                const groupId = message.group_id;
+                const userId = message.user_id;
+                const atString = `[CQ:at,qq=${userId}]\n`
+                for (let notice in newMemberNotices) {
+                    connection.send(makeGroupResponse(groupId, atString+notice.response))
+                    connection.send(makePrivateResponse(userId), notice.response)
+                }
             } catch(e) {
                 logger.error(e);
-            }
-            const groupId = message.group_id;
-            const userId = message.user_id;
-            const atString = `[CQ:at,qq=${userId}]\n`
-            for (let notice in newMemberNotices) {
-                connection.send(makeGroupResponse(groupId, atString+notice.response))
-                connection.send(makePrivateResponse(userId), notice.response)
             }
         }
     }
