@@ -30,10 +30,10 @@ function isIgnoreNumber(userId, ignoreNumbers) {
     return ignoreNumbers.map( number => number.number ).includes(userIdString);
 }
 
-function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, connection) {
+function sendResponse(message, keywordedResponses, ignoreNumbers, connection) {
     if (message.utf8Data) {
         message = JSON.parse(message.utf8Data);
-        if (message.message_type === 'group') {
+        if (message.post_type === 'message' && message.message_type === 'group') {
             const groupId = message.group_id;
             const userId = message.user_id;
             const body = message.raw_message;
@@ -54,14 +54,12 @@ function sendKeywordedResponse(message, keywordedResponses, ignoreNumbers, conne
                     connection.send(makeGroupResponse(groupId, responseText));
                 });
             }
-        }
-    }
-}
-
-function sendNoticeResponse(message, newMemberNotices, connection) {
-    if (message.utf8Data) {
-        message = JSON.parse(message.utf8Data);
-        if (message.notice_type === 'group_increase') {
+        } else if (message.post_type === 'notice' && message.notice_type === 'group_increase') {
+            try {
+                let { data: newMemberNotices } = await jsonApi.findAll('new_member_notice');
+            } catch(e) {
+                logger.error(e);
+            }
             const groupId = message.group_id;
             const userId = message.user_id;
             const atString = `[CQ:at,qq=${userId}]\n`
@@ -72,6 +70,7 @@ function sendNoticeResponse(message, newMemberNotices, connection) {
         }
     }
 }
+
 
 async function main() {
     // Initialize last update time
@@ -113,15 +112,7 @@ async function main() {
                 }
                 logger.info('Cache updated.');
             }
-            sendKeywordedResponse(message, cachedKeywordedResponses, cachedIgnoreNumbers, connection);
-        });
-        connection.on('notice', async function(message) {
-            try {
-                let { data: newMemberNoticeData } = await jsonApi.findAll('new_member_notice');
-            } catch(e) {
-                logger.error(e);
-            }
-            sendNoticeResponse(message, newMemberNoticeDate, connection);
+            sendResponse(message, cachedKeywordedResponses, cachedIgnoreNumbers, connection);
         });
     });
     client.connect('ws://localhost:6700/');
