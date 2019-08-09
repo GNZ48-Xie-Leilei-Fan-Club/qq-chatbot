@@ -60,7 +60,7 @@ async function sendResponse(message, keywordedResponses, ignoreNumbers, connecti
                 const groupId = message.group_id;
                 const userId = message.user_id;
                 const atString = `[CQ:at,qq=${userId}]\n`
-                for (let notice in newMemberNotices) {
+                for (let notice of newMemberNotices) {
                     connection.send(makeGroupResponse(groupId, atString+notice.response))
                     connection.send(makePrivateResponse(userId), notice.response)
                 }
