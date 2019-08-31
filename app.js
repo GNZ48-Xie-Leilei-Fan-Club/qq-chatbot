@@ -4,6 +4,9 @@ const request = require('request');
 
 const logger = require('./logger');
 const { jsonApi, apiAddressBattleBroadcast, apiAddressTotalRanking } = require('./api');
+const Sentry = require('@sentry/node');
+const { SENTRY_DSN_KEY } = require('./local')
+Sentry.init({ dsn: SENTRY_DSN_KEY });
 
 function makeGroupResponse(groupId, responseText) {
     return JSON.stringify({
@@ -66,6 +69,7 @@ async function sendResponse(message, keywordedResponses, ignoreNumbers, connecti
                 }
             } catch(e) {
                 logger.error(e);
+                Sentry.captureException(e);
             }
         }
     }
@@ -86,9 +90,10 @@ async function main() {
         cachedIgnoreNumbers = inData;
     } catch(e) {
         logger.error(e);
+        Sentry.captureException(e);
     }
     logger.info('Cache initialized.');
-
+    Sentry.captureMessage('Cache initialized.');
     // Connect to coolq api and listen for new messages from groups.
     let client = new WebSocketClient();
     client.on('connect', function(connection) {
@@ -109,6 +114,7 @@ async function main() {
                     lastUpdateTimestamp = Date.now()
                 } catch(e) {
                     logger.error(e);
+                    Sentry.captureException(e);
                 }
                 logger.info('Cache updated.');
             }
